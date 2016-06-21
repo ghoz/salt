@@ -1284,6 +1284,12 @@ class OutputOptionsMixIn(six.with_metaclass(MixInMeta, object)):
                   'Default: \'%default\'.')
         )
         group.add_option(
+            '--state-output-id',
+            default=False,
+            action='store_true',
+            help='Output state ID in terse mode. If False, use state Name'
+        )
+        group.add_option(
             '--state-verbose', '--state_verbose',
             default=None,
             help=('Override the configured state_verbose value for minion '

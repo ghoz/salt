@@ -149,6 +149,7 @@ def _format_host(host, data):
             __opts__.get('color'),
             __opts__.get('color_theme'))
     tabular = __opts__.get('state_tabular', False)
+    use_id = __opts__.get('state_output_id', False)
     rcounts = {}
     rdurations = []
     hcolor = colors['GREEN']
@@ -259,7 +260,7 @@ def _format_host(host, data):
                     terse = str(terse).split(',')
 
                 if str(ret['result']) in terse:
-                    msg = _format_terse(tcolor, comps, ret, colors, tabular)
+                    msg = _format_terse(tcolor, comps, ret, colors, tabular, use_id)
                     hstrs.append(msg)
                     continue
                 if str(ret['result']) in exclude:
@@ -267,20 +268,20 @@ def _format_host(host, data):
             elif __opts__.get('state_output', 'full').lower() == 'terse':
                 # Print this chunk in a terse way and continue in the
                 # loop
-                msg = _format_terse(tcolor, comps, ret, colors, tabular)
+                msg = _format_terse(tcolor, comps, ret, colors, tabular, use_id)
                 hstrs.append(msg)
                 continue
             elif __opts__.get('state_output', 'full').lower() == 'mixed':
                 # Print terse unless it failed
                 if ret['result'] is not False:
-                    msg = _format_terse(tcolor, comps, ret, colors, tabular)
+                    msg = _format_terse(tcolor, comps, ret, colors, tabular, use_id)
                     hstrs.append(msg)
                     continue
             elif __opts__.get('state_output', 'full').lower() == 'changes':
                 # Print terse if no error and no changes, otherwise, be
                 # verbose
                 if ret['result'] and not schanged:
-                    msg = _format_terse(tcolor, comps, ret, colors, tabular)
+                    msg = _format_terse(tcolor, comps, ret, colors, tabular, use_id)
                     hstrs.append(msg)
                     continue
             state_lines = [
@@ -498,10 +499,17 @@ def _format_changes(changes):
     return changed, ctext
 
 
-def _format_terse(tcolor, comps, ret, colors, tabular):
+def _format_terse(tcolor, comps, ret, colors, tabular, use_id=False):
     '''
     Terse formatting of a message.
     '''
+    if use_id:
+        state_ref_name='ID'
+        state_ref_comp=comps[1]
+    else:
+        state_ref_name='Name'
+        state_ref_comp=comps[2]
+
     result = u'Clean'
     if ret['changes']:
         result = u'Changed'
@@ -518,7 +526,7 @@ def _format_terse(tcolor, comps, ret, colors, tabular):
         fmt_string += u'{0}'
         if __opts__.get('state_output_profile', False):
             fmt_string += u'{6[start_time]!s} [{6[duration]!s} ms] '
-        fmt_string += u'{2:>10}.{3:<10} {4:7}   Name: {1}{5}'
+        fmt_string += u'{2:>10}.{3:<10} {4:7}   ' + state_ref_name +': {1}{5}'
     elif isinstance(tabular, str):
         fmt_string = tabular
     else:
@@ -527,13 +535,13 @@ def _format_terse(tcolor, comps, ret, colors, tabular):
             fmt_string += u'{c[LIGHT_RED]}Warnings:\n{w}{c[ENDC]}'.format(
                 c=colors, w='\n'.join(ret['warnings'])
             )
-        fmt_string += u' {0} Name: {1} - Function: {2}.{3} - Result: {4}'
+        fmt_string += u' {0} '+ state_ref_name+': {1} - Function: {2}.{3} - Result: {4}'
         if __opts__.get('state_output_profile', False):
             fmt_string += u' Started: - {6[start_time]!s} Duration: {6[duration]!s} ms'
         fmt_string += u'{5}'
 
     msg = fmt_string.format(tcolor,
-                            comps[2],
+                            state_ref_comp,
                             comps[0],
                             comps[-1],
                             result,
