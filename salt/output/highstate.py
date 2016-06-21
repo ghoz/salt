@@ -41,6 +41,9 @@ state_tabular:
     If `state_output` uses the terse output, set this to `True` for an aligned
     output format.  If you wish to use a custom format, this can be set to a
     string.
+state_output_id:
+    If `state_output` uses the terse output, set this to `True` to output state
+    ID rather than the default state Name.
 
 Example usage:
 
